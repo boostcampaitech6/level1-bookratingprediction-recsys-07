@@ -4,9 +4,10 @@ level1-bookratingprediction-recsys-07 created by GitHub Classroom
 
 ## How to Download Training Data
 After typing under codes.
-you can see datas in ./codes/data
+
 ```
-After Git clone
+//After Git clone
+//you can see datas in ./codes/data
 cd tools
 ./download_data.sh
 ```
