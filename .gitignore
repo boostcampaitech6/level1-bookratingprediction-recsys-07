@@ -1,2 +1,5 @@
 *.gz
 code/data/
+code/saved_models
+submit
+log
