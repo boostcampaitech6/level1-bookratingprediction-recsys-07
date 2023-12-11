@@ -1,6 +1,17 @@
 # level1-bookratingprediction-recsys-07
 level1-bookratingprediction-recsys-07 created by GitHub Classroom
 
+
+## How to Download Training Data
+After typing under codes.
+
+```
+//After Git clone
+//you can see datas in ./codes/data
+cd tools
+./download_data.sh
+```
+
 ---
 
 ## 2023-12-11 (월)
