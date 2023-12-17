@@ -191,8 +191,10 @@ class Text_Dataset(Dataset):
         self.user_summary_merge_vector = user_summary_merge_vector
         self.item_summary_vector = item_summary_vector
         self.label = label
+
     def __len__(self):
         return self.user_isbn_vector.shape[0]
+    
     def __getitem__(self, i):
         return {
                 'user_isbn_vector' : torch.tensor(self.user_isbn_vector[i], dtype=torch.long),

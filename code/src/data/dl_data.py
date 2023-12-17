@@ -19,18 +19,23 @@ def dl_data_load(args):
     users = pd.read_csv(args.data_path + 'users.csv')
     books = pd.read_csv(args.data_path + 'books.csv')
     train = pd.read_csv(args.data_path + 'train_ratings.csv')
+
     test = pd.read_csv(args.data_path + 'test_ratings.csv')
     sub = pd.read_csv(args.data_path + 'sample_submission.csv')
 
+    # 훈련 데이터와 제출용 샘플 데이터에서 user_id 및 isbn concat 후 unique() 만 추출
     ids = pd.concat([train['user_id'], sub['user_id']]).unique()
     isbns = pd.concat([train['isbn'], sub['isbn']]).unique()
 
+    # 각 식별자에 대해 정수 인덱스를 매핑하는 딕셔너리 생성 {idx : 식별자}
     idx2user = {idx:id for idx, id in enumerate(ids)}
     idx2isbn = {idx:isbn for idx, isbn in enumerate(isbns)}
 
-    user2idx = {id:idx for idx, id in idx2user.items()}
-    isbn2idx = {isbn:idx for idx, isbn in idx2isbn.items()}
+    # 딕셔너리 매핑후, 역(reverse)으로 생성 {식별자 : idx}
+    user2idx = {id:idx for idx, id in idx2user.items()}         # {638: 0, ... }
+    isbn2idx = {isbn:idx for idx, isbn in idx2isbn.items()}     # {'0385505833': 0,...}
 
+    # id들을 정수 인덱스로 변환, 테스트 데이터 포함
     train['user_id'] = train['user_id'].map(user2idx)
     sub['user_id'] = sub['user_id'].map(user2idx)
     test['user_id'] = test['user_id'].map(user2idx)
@@ -39,6 +44,8 @@ def dl_data_load(args):
     sub['isbn'] = sub['isbn'].map(isbn2idx)
     test['isbn'] = test['isbn'].map(isbn2idx)
 
+    #-------- id들을 정수 인덱싱 
+    # 필드의 크기를 정의
     field_dims = np.array([len(user2idx), len(isbn2idx)], dtype=np.uint32)
 
     data = {
@@ -57,6 +64,7 @@ def dl_data_load(args):
 
     return data
 
+#----
 def dl_data_split(args, data):
     """
     Parameters
@@ -79,6 +87,7 @@ def dl_data_split(args, data):
     data['X_train'], data['X_valid'], data['y_train'], data['y_valid'] = X_train, X_valid, y_train, y_valid
     return data
 
+# ---- 배치사이즈, 셔플 여부
 def dl_data_loader(args, data):
     """
     Parameters
