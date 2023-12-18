@@ -39,6 +39,8 @@ def train(args, model, dataloader, logger, setting):
         for idx, data in enumerate(dataloader['train_dataloader']):
             if args.model == 'CNN_FM':
                 x, y = [data['user_isbn_vector'].to(args.device), data['img_vector'].to(args.device)], data['label'].to(args.device)
+            elif args.model == 'FM_MLP_parallel':
+                x, y = [data['user_isbn_vector'].to(args.device), data['img_vector'].to(args.device)], data['label'].to(args.device)
             elif args.model == 'DeepCoNN':
                 x, y = [data['user_isbn_vector'].to(args.device), data['user_summary_merge_vector'].to(args.device), data['item_summary_vector'].to(args.device)], data['label'].to(args.device)
             else:
@@ -69,6 +71,8 @@ def valid(args, model, dataloader, loss_fn):
     for idx, data in enumerate(dataloader['valid_dataloader']):
         if args.model == 'CNN_FM':
             x, y = [data['user_isbn_vector'].to(args.device), data['img_vector'].to(args.device)], data['label'].to(args.device)
+        elif args.model == 'FM_MLP_parallel':
+            x, y = [data['user_isbn_vector'].to(args.device), data['img_vector'].to(args.device)], data['label'].to(args.device)
         elif args.model == 'DeepCoNN':
             x, y = [data['user_isbn_vector'].to(args.device), data['user_summary_merge_vector'].to(args.device), data['item_summary_vector'].to(args.device)], data['label'].to(args.device)
         else:
@@ -91,6 +95,8 @@ def test(args, model, dataloader, setting):
 
     for idx, data in enumerate(dataloader['test_dataloader']):
         if args.model == 'CNN_FM':
+            x, _ = [data['user_isbn_vector'].to(args.device), data['img_vector'].to(args.device)], data['label'].to(args.device)
+        elif args.model == 'FM_MLP_parallel':
             x, _ = [data['user_isbn_vector'].to(args.device), data['img_vector'].to(args.device)], data['label'].to(args.device)
         elif args.model == 'DeepCoNN':
             x, _ = [data['user_isbn_vector'].to(args.device), data['user_summary_merge_vector'].to(args.device), data['item_summary_vector'].to(args.device)], data['label'].to(args.device)

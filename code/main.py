@@ -24,6 +24,8 @@ def main(args):
         import nltk
         nltk.download('punkt')
         data = text_data_load(args)
+    elif args.model == 'FM_MLP_parallel':
+        data = image_data_load(args)
     else:
         pass
 
@@ -45,6 +47,9 @@ def main(args):
     elif args.model=='DeepCoNN':
         data = text_data_split(args, data)
         data = text_data_loader(args, data)
+    elif args.model == 'FM_MLP_parallel':
+        data = image_data_split(args, data)
+        data = image_data_loader(args, data)
     else:
         pass
 
@@ -76,7 +81,7 @@ def main(args):
     ######################## SAVE PREDICT
     print(f'--------------- SAVE {args.model} PREDICT ---------------')
     submission = pd.read_csv(args.data_path + 'sample_submission.csv')
-    if args.model in ('FM', 'FFM', 'NCF', 'WDN', 'DCN', 'CNN_FM', 'DeepCoNN'):
+    if args.model in ('FM', 'FFM', 'NCF', 'WDN', 'DCN', 'CNN_FM', 'DeepCoNN', 'FM_MLP_parallel'):
         submission['rating'] = predicts
     else:
         pass
