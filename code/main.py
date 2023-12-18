@@ -6,6 +6,7 @@ from src.data import context_data_load, context_data_split, context_data_loader
 from src.data import dl_data_load, dl_data_split, dl_data_loader
 from src.data import image_data_load, image_data_split, image_data_loader
 from src.data import text_data_load, text_data_split, text_data_loader
+from src.data import context_image_data_load, context_image_data_split, context_image_data_loader
 from src.train import train, test
 
 
@@ -25,7 +26,7 @@ def main(args):
         nltk.download('punkt')
         data = text_data_load(args)
     elif args.model == 'FM_MLP_parallel':
-        data = image_data_load(args)
+        data = context_image_data_load(args)
     else:
         pass
 
@@ -48,8 +49,8 @@ def main(args):
         data = text_data_split(args, data)
         data = text_data_loader(args, data)
     elif args.model == 'FM_MLP_parallel':
-        data = image_data_split(args, data)
-        data = image_data_loader(args, data)
+        data = context_image_data_split(args, data)
+        data = context_image_data_loader(args, data)
     else:
         pass
 
@@ -145,6 +146,10 @@ if __name__ == "__main__":
     arg('--kernel_size', type=int, default=3, help='DEEP_CONN에서 1D conv의 kernel 크기를 조정할 수 있습니다.')
     arg('--word_dim', type=int, default=768, help='DEEP_CONN에서 1D conv의 입력 크기를 조정할 수 있습니다.')
     arg('--out_dim', type=int, default=32, help='DEEP_CONN에서 1D conv의 출력 크기를 조정할 수 있습니다.')
+
+    ############### FM_MLP_parallel
+    arg('--user_features', type = list, default= ['age', 'location_city', 'location_state', 'location_country'], help="FM_MLP_parallel 모델에서 사용할 user feature를 설정할 수 있습니다.")
+    arg('--item_features', type = list, default= ['category', 'publisher', 'language', 'book_author'], help="FM_MLP_parallel 모델에서 사용할 item feature를 설정할 수 있습니다.")
 
 
     args = parser.parse_args()

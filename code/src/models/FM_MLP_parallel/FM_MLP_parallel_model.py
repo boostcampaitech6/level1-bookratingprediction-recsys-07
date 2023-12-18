@@ -75,15 +75,15 @@ class MultiLayerPerceptron(nn.Module):
 class FM_MLP_parallel(torch.nn.Module):
     def __init__(self, args, data):
         super().__init__()
-        self.field_dims = np.array([len(data['user2idx']), len(data['isbn2idx'])], dtype=np.uint32)
+        self.field_dims = data["field_dims"]
         self.embedding = FeaturesEmbedding(self.field_dims, args.cnn_embed_dim)
         self.cnn = CNN_Base()
         self.fm = FactorizationMachine(
-                                        input_dim=(args.cnn_embed_dim * 2) + (12 * 1 * 1),
+                                        input_dim=(args.cnn_embed_dim * len(self.field_dims)) + (12 * 1 * 1),
                                         latent_dim=args.cnn_latent_dim,
                                         )
         self.mlp = MultiLayerPerceptron(
-                                        (args.cnn_embed_dim * 2) + (12 * 1 * 1),
+                                        (args.cnn_embed_dim * len(self.field_dims)) + (12 * 1 * 1),
                                         args.mlp_dims,
                                         args.dropout,
                                         output_layer=True
