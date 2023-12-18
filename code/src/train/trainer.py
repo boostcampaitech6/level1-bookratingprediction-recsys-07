@@ -35,6 +35,7 @@ def train(args, model, dataloader, logger, setting):
         model.train()
         total_loss = 0
         batch = 0
+        cnt = 0
 
         for idx, data in enumerate(dataloader['train_dataloader']):
             if args.model == 'CNN_FM':
@@ -59,6 +60,8 @@ def train(args, model, dataloader, logger, setting):
             minimum_loss = valid_loss
             os.makedirs(args.saved_model_path, exist_ok=True)
             torch.save(model.state_dict(), f'{args.saved_model_path}/{setting.save_time}_{args.model}_model.pt')
+        elif valid_loss - minimum_loss > 0.1:
+            break
     logger.close()
     return model
 
