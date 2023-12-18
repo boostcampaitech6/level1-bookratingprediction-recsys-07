@@ -15,7 +15,7 @@ def main(args):
 
     ######################## DATA LOAD
     print(f'--------------- {args.model} Load Data ---------------')
-    if args.model in ('FM', 'FFM'):
+    if args.model in ('FM', 'FFM', 'FMdeep'):
         data = context_data_load(args)
     elif args.model in ('NCF', 'WDN', 'DCN'):
         data = dl_data_load(args)
@@ -33,7 +33,7 @@ def main(args):
 
     ######################## Train/Valid Split
     print(f'--------------- {args.model} Train/Valid Split ---------------')
-    if args.model in ('FM', 'FFM'):
+    if args.model in ('FM', 'FFM', 'FMdeep'):
         data = context_data_split(args, data)
         data = context_data_loader(args, data)
 
@@ -126,7 +126,7 @@ if __name__ == "__main__":
     ############### FM, FFM, NCF, WDN, DCN Common OPTION
     arg('--embed_dim', type=int, default=16, help='FM, FFM, NCF, WDN, DCN에서 embedding시킬 차원을 조정할 수 있습니다.')
     arg('--dropout', type=float, default=0.3, help='NCF, WDN, DCN에서 Dropout rate를 조정할 수 있습니다.')
-    arg('--mlp_dims', type=list, default=(16, 16), help='NCF, WDN, DCN에서 MLP Network의 차원을 조정할 수 있습니다.')
+    arg('--mlp_dims', type=list, default=[25, 25, 25, 25], help='NCF, WDN, DCN에서 MLP Network의 차원을 조정할 수 있습니다.')
 
 
     ############### 
@@ -148,8 +148,8 @@ if __name__ == "__main__":
     arg('--out_dim', type=int, default=32, help='DEEP_CONN에서 1D conv의 출력 크기를 조정할 수 있습니다.')
 
     ############### FM_MLP_parallel
-    arg('--user_features', type = list, default= ['age', 'location_city', 'location_state', 'location_country'], help="FM_MLP_parallel 모델에서 사용할 user feature를 설정할 수 있습니다.")
-    arg('--item_features', type = list, default= ['category', 'publisher', 'language', 'book_author'], help="FM_MLP_parallel 모델에서 사용할 item feature를 설정할 수 있습니다.")
+    arg('--user_features', type = list, default= ['location_country'], help="FM_MLP_parallel 모델에서 사용할 user feature를 설정할 수 있습니다.")
+    arg('--item_features', type = list, default= ['publisher', 'language', 'book_author'], help="FM_MLP_parallel 모델에서 사용할 item feature를 설정할 수 있습니다.")
 
 
     args = parser.parse_args()
