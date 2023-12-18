@@ -206,11 +206,18 @@ def context_image_data_load(args):
     test = pd.read_csv(args.data_path + 'test_ratings.csv')
     sub = pd.read_csv(args.data_path + 'sample_submission.csv')
 
-    print('preprocessing start')
-    users = user_preprocess(users)
-    print('user preprocess done')
-    books = book_preprocess(books)
-    print('book preprocess done')
+    if args.preprocessed == 0:
+        print('preprocessing start')
+        users = user_preprocess(users)
+        print('user preprocess done')
+        books = book_preprocess(books)
+        print('book preprocess done')
+        users.to_csv('data/pusers.csv')
+        books.to_csv('data/pbooks.csv')
+    else:
+        print('load preprocessed csv file')
+        users = pd.read_csv('data/pusers.csv')
+        books = pd.read_csv('data/pbooks.csv')
 
     ids = pd.concat([train['user_id'], sub['user_id']]).unique()
     isbns = pd.concat([train['isbn'], sub['isbn']]).unique()
