@@ -48,8 +48,10 @@ def models_load(args, data):
         model = CNN_FM(args, data).to(args.device)
     elif args.model=='DeepCoNN':
         model = DeepCoNN(args, data).to(args.device)
+    elif args.model=='FM_MLP_parallel':
+        model = FM_MLP_parallel(args, data).to(args.device)
     else:
-        raise ValueError('MODEL is not exist : select model in [FM,FFM,NCF,WDN,DCN,CNN_FM,DeepCoNN]')
+        raise ValueError('MODEL is not exist : select model in [FM,FFM,NCF,WDN,DCN,CNN_FM,DeepCoNN,FM_MLP_parallel]')
     return model
 
 
