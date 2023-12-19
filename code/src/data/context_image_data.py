@@ -238,15 +238,23 @@ def context_image_data_load(args):
     test['isbn'] = test['isbn'].map(isbn2idx)
     books['isbn'] = books['isbn'].map(isbn2idx)
 
-    idx, context_train, context_test = process_context_data(users, books, train, test, args)
+    if args.preprocessed == 0:
+        img_train = process_img_data(train, books, user2idx, isbn2idx, train=True)
+        img_test = process_img_data(test, books, user2idx, isbn2idx, train=False)
+        img_train.to_pickle('data/img_train.pkl')
+        img_test.to_pickle('data/img_test.pkl')
+    else:
+        img_train = pd.read_pickle('data/img_train.pkl')
+        img_test = pd.read_pickle('data/img_test.pkl')
+    
+
+    idx, img_train, img_test = process_context_data(users, books, img_train, img_test, args)
     field_dims = np.array([len(user2idx), len(isbn2idx)] +
                             [len(dict_map) for dict_map in idx], dtype=np.uint32)
-    img_train = process_img_data(context_train, books, user2idx, isbn2idx, train=True)
-    img_test = process_img_data(context_test, books, user2idx, isbn2idx, train=False)
+    #img_train = process_img_data(context_train, books, user2idx, isbn2idx, train=True)
+    #img_test = process_img_data(context_test, books, user2idx, isbn2idx, train=False)
 
     data = {
-            'train':context_train,
-            'test':context_test.drop(['rating'], axis=1),
             'field_dims':field_dims,
             'users':users,
             'books':books,
