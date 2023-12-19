@@ -60,7 +60,7 @@ def train(args, model, dataloader, logger, setting):
             minimum_loss = valid_loss
             os.makedirs(args.saved_model_path, exist_ok=True)
             torch.save(model.state_dict(), f'{args.saved_model_path}/{setting.save_time}_{args.model}_model.pt')
-        elif valid_loss - minimum_loss > 0.1:
+        elif valid_loss - minimum_loss > 0.01:
             break
     logger.close()
     return model
