@@ -98,5 +98,5 @@ class FM_MLP_parallel(torch.nn.Module):
                                     user_isbn_feature.view(-1, user_isbn_feature.size(1) * user_isbn_feature.size(2)),
                                     img_feature
                                     ], dim=1)
-        output = self.fm(feature_vector) + self.mlp(feature_vector)
+        output = torch.clamp(self.fm(feature_vector) + self.mlp(feature_vector), 1.0, 10.0)
         return output.squeeze(1)
