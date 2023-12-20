@@ -4,7 +4,6 @@ import torch.nn as nn
 
 
 # factorization을 통해 얻은 feature를 embedding 합니다.
-# field_dims 2개의 범주형 데이터 user_id는 247개의 카테고리, isbn은 12,512개의 카테고리 임베딩
 
 # embed_dim 임베딩 차원 입력으로 받아서 처리
 # 만약 embed_dim이 4면,
@@ -12,6 +11,11 @@ import torch.nn as nn
 # tensor([[[ 0.0135, -0.0116,  0.0113,  0.0105],
 #          [ 0.0167,  0.0074,  0.0202, -0.0185]]]
 # 이런식으로 각 feature을 4차원으로 임베딩 
+
+
+# 입력 : 범주형 필드의 크기(field_dims)와 임베딩 차원(embed_dim)
+# field_dims 2개의 범주형 데이터 user_id는 59,803개의 카테고리, isbn은 129,777개의 카테고리 
+
 
 class FeaturesEmbedding(nn.Module):
     def __init__(self, field_dims: np.ndarray, embed_dim: int):
@@ -26,18 +30,15 @@ class FeaturesEmbedding(nn.Module):
         return self.embedding(x)
 
 
-# cross product transformation을 구현합니다.
-# 여기서 입력 특성들 간의 교차작용(interaction)을 모델링하는데 사용됩니다.
-
-# ? 현재 데이터가 유저 아이디와, 책의 아이디 사이의 인터렉션 해석?
-# 유저가 어떤 책을 읽었는지에 대해서만 학습한것
-# 다른 특성 이용 전혀 x
-    
-# 입력차원, 레이어 수(길이) 입력 
-
-# 초기 입력 x0와 현재 레이어의 선형 변환 결과인 xw를 곱하고, 
-# 편향 self.b[i]를 더하며, 마지막으로 원래 입력 x를 더합니다. 
-# 이를 통해 특성 간의 interaction을 학습
+# Cross Network : 입력 피처 간의 교차(cross) 상호 작용(interaction)을 캡처하는 데 사용되는 신경망 아키텍처 
+# input_dim : 임베딩된 특성의 차원
+# num_layers : 크로스 네트워크의 레이어 수 
+'''
+교차 상호 작용(x0 * xw)과 편향(self.b[i])을 더하고, 
+이전 레이어의 출력 x를 더하여 현재 레이어의 출력값을 얻습니다. 
+이것이 교차 상호 작용을 포함한 현재 레이어의 출력입니다.
+따라서 각 레이어에서 입력 피처 간의 교차 상호 작용이 모델링됨   
+'''
 
 class CrossNetwork(nn.Module):
     def __init__(self, input_dim: int, num_layers: int):
@@ -51,9 +52,8 @@ class CrossNetwork(nn.Module):
             torch.nn.Parameter(torch.zeros((input_dim,))) for _ in range(num_layers)
         ])
 
-
     def forward(self, x: torch.Tensor):
-        x0 = x
+        x0 = x 
         for i in range(self.num_layers):
             xw = self.w[i](x)
             x = x0 * xw + self.b[i] + x
@@ -73,10 +73,11 @@ class MultiLayerPerceptron(nn.Module):
         for embed_dim in embed_dims:
             layers.append(torch.nn.Linear(input_dim, embed_dim)) # 선형층
             layers.append(torch.nn.BatchNorm1d(embed_dim))  # 배치 정규화
-            layers.append(torch.nn.ReLU())                  # ReLU 활성화 함수
-            layers.append(torch.nn.Dropout(p=dropout))      # 드롭아웃 0.1
+            layers.append(torch.nn.ELU())                  # ReLU 활성화 함수
+            layers.append(torch.nn.Dropout(p=dropout))      # 드롭아웃
             input_dim = embed_dim
-        
+    
+        # 마지막에 선형 레이어를 추가하여 출력
         if output_layer:
             layers.append(torch.nn.Linear(input_dim, 1))
         
@@ -85,12 +86,44 @@ class MultiLayerPerceptron(nn.Module):
 
     def forward(self, x):
         return self.mlp(x)
-
+    
 
 
 ## Crossnetwork 결과를 MLP layer에 넣어 최종결과를 도출합니다.
 # 입력 특성 간의 interaction 을 학습하는 Cross Network와 
 # 비선형성을 추가하는 MLP를 결합하여 다양한 특성을 효과적으로 모델링
+
+# ParallelDeepCrossNetworkModel
+# RMSE, ADAM
+class DeepCrossNetworkModel(nn.Module):
+    def __init__(self, args, data):
+        super().__init__()
+        self.field_dims = data['field_dims']
+        self.embedding = FeaturesEmbedding(self.field_dims, args.embed_dim)
+        self.embed_output_dim = len(self.field_dims) * args.embed_dim
+        self.cn = CrossNetwork(self.embed_output_dim, args.num_layers)
+        self.mlp = MultiLayerPerceptron(self.embed_output_dim, args.mlp_dims, args.dropout, output_layer=False)
+        self.linear = torch.nn.Linear(args.mlp_dims[-1] + self.embed_output_dim, 1)
+
+
+    def forward(self, x: torch.Tensor):
+        embed_x = self.embedding(x).view(-1, self.embed_output_dim)
+        x_l1 = self.cn(embed_x)
+        h_l2 = self.mlp(embed_x)
+        x_stack = torch.cat([x_l1, h_l2], dim=1)
+
+        # concat 이후 선형레이어 통과
+        p = self.linear(x_stack) 
+        
+        # 클램핑 처리, 모델단에서 처리되므로, 훈련중에도 적용됨
+        # p = torch.clamp(self.linear(x_stack), 1.0, 10.0)
+
+        return p.squeeze(1) 
+    
+
+    
+
+#output = torch.clamp(output, 1.0, 10.0)
 
 
 # StackedDeepCrossNetworkModel
@@ -115,27 +148,3 @@ class MultiLayerPerceptron(nn.Module):
 
 #         p = self.cd_linear(x_out) # 임베딩 레이어 부터 순차적으로 구성되어, 레이어 출력이 다음 레이어의 입력이 됩니다.
 #         return p.squeeze(1)
-
-
-# ParallelDeepCrossNetworkModel
-# RMSE, ADAM
-class DeepCrossNetworkModel(nn.Module):
-    def __init__(self, args, data):
-        super().__init__()
-        self.field_dims = data['field_dims']
-        self.embedding = FeaturesEmbedding(self.field_dims, args.embed_dim)
-        self.embed_output_dim = len(self.field_dims) * args.embed_dim
-        self.cn = CrossNetwork(self.embed_output_dim, args.num_layers)
-        self.mlp = MultiLayerPerceptron(self.embed_output_dim, args.mlp_dims, args.dropout, output_layer=False)
-        self.linear = torch.nn.Linear(args.mlp_dims[-1] + self.embed_output_dim, 1)
-
-
-    def forward(self, x: torch.Tensor):
-        embed_x = self.embedding(x).view(-1, self.embed_output_dim)
-        x_l1 = self.cn(embed_x)
-        h_l2 = self.mlp(embed_x)
-        x_stack = torch.cat([x_l1, h_l2], dim=1)
-        
-        p = self.linear(x_stack) # concat 이후 선형레이어 통과
-        
-        return p.squeeze(1)

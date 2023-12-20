@@ -25,8 +25,10 @@ class Image_Dataset(Dataset):
         self.user_isbn_vector = user_isbn_vector
         self.img_vector = img_vector
         self.label = label
+        
     def __len__(self):
         return self.user_isbn_vector.shape[0]
+    
     def __getitem__(self, i):
         return {
                 'user_isbn_vector' : torch.tensor(self.user_isbn_vector[i], dtype=torch.long),
@@ -107,8 +109,21 @@ def image_data_load(args):
     users = pd.read_csv(args.data_path + 'users.csv')
     books = pd.read_csv(args.data_path + 'books.csv')
     train = pd.read_csv(args.data_path + 'train_ratings.csv')
+    
+    # 콜드 데이터 처리
+    # user_id_counts = train['user_id'].value_counts()
+    # isbn_counts = train['isbn'].value_counts()
+    # train_one = train[(train['user_id'].map(user_id_counts) == 1) & (train['isbn'].map(isbn_counts) == 1)]
+    # train = train.drop(train_one.index)
+
+    # print('size : ',len(train))
+
+
     test = pd.read_csv(args.data_path + 'test_ratings.csv')
     sub = pd.read_csv(args.data_path + 'sample_submission.csv')
+
+
+
 
     ids = pd.concat([train['user_id'], sub['user_id']]).unique()
     isbns = pd.concat([train['isbn'], sub['isbn']]).unique()

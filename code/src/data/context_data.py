@@ -109,6 +109,17 @@ def context_data_load(args):
     test = pd.read_csv(args.data_path + 'test_ratings.csv')
     sub = pd.read_csv(args.data_path + 'sample_submission.csv')
 
+    # 콜드 데이터 처리
+    # user_id_counts = train['user_id'].value_counts()
+    # isbn_counts = train['isbn'].value_counts()
+    # train_one = train[(train['user_id'].map(user_id_counts) == 1) & (train['isbn'].map(isbn_counts) == 1)]
+    # train = train.drop(train_one.index)
+
+    # print('size : ',len(train))
+
+
+
+
     ids = pd.concat([train['user_id'], sub['user_id']]).unique()
     isbns = pd.concat([train['isbn'], sub['isbn']]).unique()
 
