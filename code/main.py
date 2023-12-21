@@ -10,8 +10,8 @@ from src.train import train, test
 
 
 def main(args):
-    Setting.seed_everything(args.seed)
 
+    Setting.seed_everything(args.seed)
 
     ######################## DATA LOAD
     print(f'--------------- {args.model} Load Data ---------------')
@@ -100,8 +100,8 @@ if __name__ == "__main__":
     arg('--model', type=str, choices=['FM', 'FFM', 'NCF', 'WDN', 'DCN', 'CNN_FM', 'DeepCoNN'],
                                 help='학습 및 예측할 모델을 선택할 수 있습니다.')
     arg('--data_shuffle', type=bool, default=True, help='데이터 셔플 여부를 조정할 수 있습니다.')
-    arg('--test_size', type=float, default=0.05, help='Train/Valid split 비율을 조정할 수 있습니다.') #0.2
-    arg('--seed', type=int, default=42, help='seed 값을 조정할 수 있습니다.') #42
+    arg('--test_size', type=float, default=0.2, help='Train/Valid split 비율을 조정할 수 있습니다.') #0.2
+    arg('--seed', type=int, default=10, help='seed 값을 조정할 수 있습니다.') #42
     arg('--use_best_model', type=bool, default=True, help='검증 성능이 가장 좋은 모델 사용여부를 설정할 수 있습니다.')
 
 

@@ -100,7 +100,6 @@ def test(args, model, dataloader, setting):
         
         # clamp 처리 하여, 결과 예측시 범위 밖 데이터 처리
         predicts.extend(torch.clamp(y_hat,1,10).tolist())
-
         # predicts.extend(y_hat.tolist())
-
+        
     return predicts

@@ -72,9 +72,9 @@ class MultiLayerPerceptron(nn.Module):
         
         for embed_dim in embed_dims:
             layers.append(torch.nn.Linear(input_dim, embed_dim)) # 선형층
-            layers.append(torch.nn.BatchNorm1d(embed_dim))  # 배치 정규화
-            layers.append(torch.nn.ELU())                  # ReLU 활성화 함수
-            layers.append(torch.nn.Dropout(p=dropout))      # 드롭아웃
+            layers.append(torch.nn.BatchNorm1d(embed_dim))       # 배치 정규화
+            layers.append(torch.nn.ELU())                        # ELU 활성화 함수
+            layers.append(torch.nn.Dropout(p=dropout))           # 드롭아웃
             input_dim = embed_dim
     
         # 마지막에 선형 레이어를 추가하여 출력
@@ -82,7 +82,6 @@ class MultiLayerPerceptron(nn.Module):
             layers.append(torch.nn.Linear(input_dim, 1))
         
         self.mlp = torch.nn.Sequential(*layers)
-
 
     def forward(self, x):
         return self.mlp(x)
@@ -115,13 +114,10 @@ class DeepCrossNetworkModel(nn.Module):
         # concat 이후 선형레이어 통과
         p = self.linear(x_stack) 
         
-        # 클램핑 처리, 모델단에서 처리되므로, 훈련중에도 적용됨
+        # 클램핑 처리, 모델단에서 처리되므로, 훈련중에도 적용 x
         # p = torch.clamp(self.linear(x_stack), 1.0, 10.0)
 
         return p.squeeze(1) 
-    
-
-    
 
 #output = torch.clamp(output, 1.0, 10.0)
 
