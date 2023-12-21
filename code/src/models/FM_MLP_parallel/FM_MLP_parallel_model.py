@@ -43,7 +43,7 @@ class CNN_Base(nn.Module):
                                         nn.ReLU(),
                                         nn.MaxPool2d(kernel_size=3, stride=2),
                                         nn.Conv2d(6, 12, kernel_size=3, stride=2, padding=1),
-                                        nn.ReLU(),
+                                        nn.ELU(),
                                         nn.MaxPool2d(kernel_size=3, stride=2),
                                         )
         
@@ -89,6 +89,36 @@ class FM_MLP_parallel(torch.nn.Module):
                                         output_layer=True
                                         )
 
+    def forward(self, x):
+        user_isbn_vector, img_vector = x[0], x[1]
+        user_isbn_feature = self.embedding(user_isbn_vector)
+        img_feature = self.cnn(img_vector)
+        feature_vector = torch.cat([
+                                    user_isbn_feature.view(-1, user_isbn_feature.size(1) * user_isbn_feature.size(2)),
+                                    img_feature
+                                    ], dim=1)
+        output = self.fm(feature_vector) + self.mlp(feature_vector)
+        return output.squeeze(1)
+    
+
+class FM_After_MLP(torch.nn.Module):
+    def __init__(self, args, data):
+        super().__init__()
+        self.field_dims = data["field_dims"]
+        self.embedding = FeaturesEmbedding(self.field_dims, args.cnn_embed_dim)
+        self.cnn = CNN_Base()
+        self.fm = FactorizationMachine(
+                                        input_dim=(args.cnn_embed_dim * len(self.field_dims)) + (12 * 1 * 1),
+                                        latent_dim=args.cnn_latent_dim,
+                                        )
+        self.mlp = MultiLayerPerceptron(
+                                        (args.cnn_embed_dim * len(self.field_dims)) + (12 * 1 * 1),
+                                        args.mlp_dims,
+                                        args.dropout,
+                                        output_layer=True
+                                        )
+        self.mlp_on = False
+
 
     def forward(self, x):
         user_isbn_vector, img_vector = x[0], x[1]
@@ -98,5 +128,5 @@ class FM_MLP_parallel(torch.nn.Module):
                                     user_isbn_feature.view(-1, user_isbn_feature.size(1) * user_isbn_feature.size(2)),
                                     img_feature
                                     ], dim=1)
-        output = torch.clamp(self.fm(feature_vector) + self.mlp(feature_vector), 1.0, 10.0)
+        output = torch.clamp(self.fm(feature_vector) + self.mlp(feature_vector), 1.0, 10.0) if self.mlp_on else torch.clamp(self.fm(feature_vector), 1.0, 10.0)
         return output.squeeze(1)
