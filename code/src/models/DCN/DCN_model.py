@@ -94,6 +94,7 @@ class MultiLayerPerceptron(nn.Module):
 
 # ParallelDeepCrossNetworkModel
 # RMSE, ADAM
+    
 class DeepCrossNetworkModel(nn.Module):
     def __init__(self, args, data):
         super().__init__()
@@ -119,7 +120,6 @@ class DeepCrossNetworkModel(nn.Module):
 
         return p.squeeze(1) 
 
-#output = torch.clamp(output, 1.0, 10.0)
 
 
 # StackedDeepCrossNetworkModel

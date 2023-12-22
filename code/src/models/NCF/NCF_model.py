@@ -26,7 +26,7 @@ class MultiLayerPerceptron(nn.Module):
         for embed_dim in embed_dims:
             layers.append(torch.nn.Linear(input_dim, embed_dim))
             layers.append(torch.nn.BatchNorm1d(embed_dim))
-            layers.append(torch.nn.ReLU())
+            layers.append(torch.nn.ELU())
             layers.append(torch.nn.Dropout(p=dropout))
             input_dim = embed_dim
         if output_layer:

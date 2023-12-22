@@ -101,7 +101,7 @@ if __name__ == "__main__":
                                 help='학습 및 예측할 모델을 선택할 수 있습니다.')
     arg('--data_shuffle', type=bool, default=True, help='데이터 셔플 여부를 조정할 수 있습니다.')
     arg('--test_size', type=float, default=0.2, help='Train/Valid split 비율을 조정할 수 있습니다.') #0.2
-    arg('--seed', type=int, default=10, help='seed 값을 조정할 수 있습니다.') #42
+    arg('--seed', type=int, default=16, help='seed 값을 조정할 수 있습니다.') #42
     arg('--use_best_model', type=bool, default=True, help='검증 성능이 가장 좋은 모델 사용여부를 설정할 수 있습니다.')
 
 
@@ -120,7 +120,7 @@ if __name__ == "__main__":
 
 
     ############### FM, FFM, NCF, WDN, DCN Common OPTION
-    arg('--embed_dim', type=int, default=128, help='FM, FFM, NCF, WDN, DCN에서 embedding시킬 차원을 조정할 수 있습니다.')
+    arg('--embed_dim', type=int, default=512, help='FM, FFM, NCF, WDN, DCN에서 embedding시킬 차원을 조정할 수 있습니다.')
     arg('--dropout', type=float, default=0.1, help='NCF, WDN, DCN에서 Dropout rate를 조정할 수 있습니다.')
     arg('--mlp_dims', type=list, default=(64,64), help='NCF, WDN, DCN에서 MLP Network의 차원을 조정할 수 있습니다.') # 64,64 32,32
 

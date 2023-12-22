@@ -15,7 +15,6 @@ class RMSELoss(nn.Module):
         loss = torch.sqrt(criterion(x, y)+self.eps)
         return loss
 
-
 def train(args, model, dataloader, logger, setting):
     minimum_loss = 999999999
     if args.loss_fn == 'MSE':
