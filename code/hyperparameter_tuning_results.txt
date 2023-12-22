@@ -1,0 +1,69 @@
+--------------- DeepCoNN Load Data ---------------
+[nltk_data] Downloading package punkt to
+[nltk_data]     /data/ephemeral/home/nltk_data...
+[nltk_data]   Package punkt is already up-to-date!
+Check Vectorizer
+Vector Load
+Check Vectorizer
+Vector Load
+현재 하이퍼파라미터 조합: learning_rate=0.001, embed_dim=16, latent_dim=5, kernel_size=3, word_dim=768, --out_dim 16, --conv_1d_out_dim 50 --mlp_dims (16, 16)
+--------------- DeepCoNN Train/Valid Split ---------------
+--------------- INIT DeepCoNN ---------------
+--------------- DeepCoNN TRAINING ---------------
+  0%|          | 0/4 [00:00<?, ?it/s]Epoch: 1, Train_loss: 3.412, valid_loss: 2.225
+lr:  0.00095
+ 25%|██▌       | 1/4 [00:15<00:47, 15.98s/it]Epoch: 2, Train_loss: 2.065, valid_loss: 2.249
+lr:  0.0009025
+ 50%|█████     | 2/4 [00:31<00:31, 15.60s/it]Epoch: 3, Train_loss: 1.788, valid_loss: 2.293
+lr:  0.000857375
+ 75%|███████▌  | 3/4 [00:47<00:15, 15.67s/it]Epoch: 4, Train_loss: 1.636, valid_loss: 2.330
+lr:  0.0008145062499999999
+100%|██████████| 4/4 [01:02<00:00, 15.54s/it]100%|██████████| 4/4 [01:02<00:00, 15.60s/it]
+--------------- DeepCoNN PREDICT ---------------
+--------------- SAVE DeepCoNN PREDICT ---------------
+--------------- DeepCoNN Load Data ---------------
+[nltk_data] Downloading package punkt to
+[nltk_data]     /data/ephemeral/home/nltk_data...
+[nltk_data]   Package punkt is already up-to-date!
+Check Vectorizer
+Vector Load
+Check Vectorizer
+Vector Load
+현재 하이퍼파라미터 조합: learning_rate=0.001, embed_dim=16, latent_dim=5, kernel_size=3, word_dim=768, --out_dim 32, --conv_1d_out_dim 50 --mlp_dims (16, 16)
+--------------- DeepCoNN Train/Valid Split ---------------
+--------------- INIT DeepCoNN ---------------
+--------------- DeepCoNN TRAINING ---------------
+  0%|          | 0/4 [00:00<?, ?it/s]Epoch: 1, Train_loss: 2.732, valid_loss: 2.203
+lr:  0.00095
+ 25%|██▌       | 1/4 [00:15<00:46, 15.53s/it]Epoch: 2, Train_loss: 1.993, valid_loss: 2.241
+lr:  0.0009025
+ 50%|█████     | 2/4 [00:30<00:30, 15.24s/it]Epoch: 3, Train_loss: 1.730, valid_loss: 2.298
+lr:  0.000857375
+ 75%|███████▌  | 3/4 [00:45<00:15, 15.30s/it]Epoch: 4, Train_loss: 1.584, valid_loss: 2.318
+lr:  0.0008145062499999999
+100%|██████████| 4/4 [01:01<00:00, 15.30s/it]100%|██████████| 4/4 [01:01<00:00, 15.31s/it]
+--------------- DeepCoNN PREDICT ---------------
+--------------- SAVE DeepCoNN PREDICT ---------------
+--------------- DeepCoNN Load Data ---------------
+[nltk_data] Downloading package punkt to
+[nltk_data]     /data/ephemeral/home/nltk_data...
+[nltk_data]   Package punkt is already up-to-date!
+Check Vectorizer
+Vector Load
+Check Vectorizer
+Vector Load
+현재 하이퍼파라미터 조합: learning_rate=0.001, embed_dim=16, latent_dim=10, kernel_size=3, word_dim=768, --out_dim 16, --conv_1d_out_dim 50 --mlp_dims (16, 16)
+--------------- DeepCoNN Train/Valid Split ---------------
+--------------- INIT DeepCoNN ---------------
+--------------- DeepCoNN TRAINING ---------------
+  0%|          | 0/4 [00:00<?, ?it/s]Epoch: 1, Train_loss: 5.270, valid_loss: 2.217
+lr:  0.00095
+ 25%|██▌       | 1/4 [00:15<00:46, 15.50s/it]Epoch: 2, Train_loss: 2.133, valid_loss: 2.234
+lr:  0.0009025
+ 50%|█████     | 2/4 [00:30<00:30, 15.15s/it]Epoch: 3, Train_loss: 1.847, valid_loss: 2.288
+lr:  0.000857375
+ 75%|███████▌  | 3/4 [00:45<00:15, 15.05s/it]Epoch: 4, Train_loss: 1.693, valid_loss: 2.313
+lr:  0.0008145062499999999
+100%|██████████| 4/4 [01:00<00:00, 15.09s/it]100%|██████████| 4/4 [01:00<00:00, 15.12s/it]
+--------------- DeepCoNN PREDICT ---------------
+--------------- SAVE DeepCoNN PREDICT ---------------

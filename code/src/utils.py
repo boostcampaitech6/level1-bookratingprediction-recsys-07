@@ -48,8 +48,11 @@ def models_load(args, data):
         model = CNN_FM(args, data).to(args.device)
     elif args.model=='DeepCoNN':
         model = DeepCoNN(args, data).to(args.device)
+    ##추가 된것
+    elif args.model=='CoNNCNN':
+        model = CoNNCNN(args, data).to(args.device)
     else:
-        raise ValueError('MODEL is not exist : select model in [FM,FFM,NCF,WDN,DCN,CNN_FM,DeepCoNN]')
+        raise ValueError('MODEL is not exist : select model in [FM,FFM,NCF,WDN,DCN,CNN_FM,DeepCoNN,CoNNCNN]')
     return model
 
 
@@ -104,7 +107,11 @@ class Setting:
         filename : submit file을 저장할 경로를 반환합니다.
         이 때, 파일명은 submit/날짜_시간_모델명.csv 입니다.
         '''
-        filename = f'./submit/{self.save_time}_{args.model}.csv'
+        #filename = f'./submit/{self.save_time}_{args.model}.csv'
+        filename = (f'./submit/{self.save_time}_{args.model}_'
+                f'lr{args.lr}_embed{args.deepconn_embed_dim}_'
+                f'latent{args.deepconn_latent_dim}_kernel{args.kernel_size}_'
+                f'word{args.word_dim}.csv')
         return filename
 
     def make_dir(self,path):

@@ -6,6 +6,8 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
+import torchvision.transforms as transforms
+from PIL import Image
 import torch
 from torch.utils.data import DataLoader, Dataset
 from torch.autograd import Variable
@@ -39,22 +41,9 @@ def summary_merge(df, user_id, max_summary):
         최대 몇개의 요약 자료를 병합할 것인지를 입력합니다.
     ----------
     """
-    return " ".join(df[df['user_id'] == user_id].sort_values(by='rating', ascending=False)['summary'].values[:max_summary])
-##
-def context_merge(df, user_id, max_summary):
-    """
-    Parameters
-    ----------
-    df : pd.DataFrame
-        기준이 되는 데이터 프레임을 입력합니다.
-    user_id : np.ndarray
-        유저에 대한 고유 정보를 입력합니다.
-    max_summary : int
-        최대 몇개의 요약 자료를 병합할 것인지를 입력합니다.
-    ----------
-    """
-    return " ".join(df[df['user_id'] == user_id].sort_values(by='rating', ascending=False)['context'].values[:max_summary])
-##
+    return " ".join(df[df['user_id'] == user_id].sort_values(by='summary_length', ascending=False)['summary'].values[:max_summary])
+
+
 def text_to_vector(text, tokenizer, model, device):
     """
     Parameters
@@ -82,8 +71,21 @@ def text_to_vector(text, tokenizer, model, device):
             sentence_embedding = torch.mean(encode_layers[0], dim=0)
     return sentence_embedding.cpu().detach().numpy()
 
+def image_vector(path):
+    """
+    Parameters
+    ----------
+    path : str
+        이미지가 존재하는 경로를 입력합니다.
+    ----------
+    """
+    img = Image.open(path)
+    scale = transforms.Resize((32, 32))
+    tensor = transforms.ToTensor()
+    img_fe = Variable(tensor(scale(img)))
+    return img_fe
 
-def process_text_data(df, books, user2idx, isbn2idx, device, train=False, user_summary_merge_vector=False, item_summary_vector=False):
+def process_text_image_data(df, books, user2idx, isbn2idx, device, train=False, user_summary_merge_vector=False, item_summary_vector=False):
     """
     Parameters
     ----------
@@ -114,16 +116,25 @@ def process_text_data(df, books, user2idx, isbn2idx, device, train=False, user_s
         df_ = df.copy()
         df_['user_id'] = df_['user_id'].map(user2idx)
         df_['isbn'] = df_['isbn'].map(isbn2idx)
-    
-    df_ = pd.merge(df_, books_[['isbn', 'summary']], on='isbn', how='left')
+        
+
+    df_ = pd.merge(df_, books_[['isbn', 'summary', 'img_path']], on='isbn', how='left')
     df_['summary'].fillna('None', inplace=True)
-    #df_['summary'] = df_['summary'].fillna(df_['book_title'])
     df_['summary'] = df_['summary'].apply(lambda x:text_preprocessing(x))
     df_['summary'].replace({'':'None', ' ':'None'}, inplace=True)
-    #df_=df_.drop('book_title', axis=1)
-
-
     df_['summary_length'] = df_['summary'].apply(lambda x:len(x))
+    df_['img_path'] = df_['img_path'].apply(lambda x: 'data/'+x)
+    img_vector_df = df_[['img_path']].drop_duplicates().reset_index(drop=True).copy()
+    data_box = []
+    for idx, path in tqdm(enumerate(sorted(img_vector_df['img_path']))):
+        data = image_vector(path)
+        if data.size()[0] == 3:
+            data_box.append(np.array(data))
+        else:
+            data_box.append(np.array(data.expand(3, data.size()[1], data.size()[2])))
+    img_vector_df['img_vector'] = data_box
+    df_ = pd.merge(df_, img_vector_df, on='img_path', how='left')
+
 
     tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
     model = BertModel.from_pretrained('bert-base-uncased').to(device)
@@ -166,8 +177,6 @@ def process_text_data(df, books, user2idx, isbn2idx, device, train=False, user_s
             np.save('./data/text_vector/train_item_summary_vector.npy', vector)
         else:
             np.save('./data/text_vector/test_item_summary_vector.npy', vector)
-    
-
     else:
         print('Check Vectorizer')
         print('Vector Load')
@@ -186,15 +195,18 @@ def process_text_data(df, books, user2idx, isbn2idx, device, train=False, user_s
         books_text_df = pd.DataFrame([item[0], item[1]]).T
         books_text_df.columns = ['isbn', 'item_summary_vector']
         books_text_df['isbn'] = books_text_df['isbn'].astype('int')
-    
-    #df_ = df_.drop(['book_title', 'category', 'publisher', 'book_author', 'context'], axis=1)
     df_ = pd.merge(df_, user_review_text_df, on='user_id', how='left')
     df_ = pd.merge(df_, books_text_df[['isbn', 'item_summary_vector']], on='isbn', how='left')
-    return df_
     
 
-class Text_Dataset(Dataset):
-    def __init__(self, user_isbn_vector, user_summary_merge_vector, item_summary_vector, label):
+    
+    return df_
+
+
+
+
+class Text_Image_Dataset(Dataset):
+    def __init__(self, user_isbn_vector, user_summary_merge_vector, item_summary_vector, img_vector, label):
         """
         Parameters
         ----------
@@ -204,6 +216,8 @@ class Text_Dataset(Dataset):
             벡터화된 유저에 대한 병합한 요약 정보 데이터 입력합니다.
         item_summary_vector : np.ndarray
             벡터화된 책에 대한 요약 정보 데이터 입력합니다.
+        img_vector : np.ndarray
+            벡터화된 이미지 데이터를 입력합니다.
         label : np.ndarray
             정답 데이터를 입력합니다.
         ----------
@@ -211,6 +225,7 @@ class Text_Dataset(Dataset):
         self.user_isbn_vector = user_isbn_vector
         self.user_summary_merge_vector = user_summary_merge_vector
         self.item_summary_vector = item_summary_vector
+        self.img_vector = img_vector
         self.label = label
     def __len__(self):
         return self.user_isbn_vector.shape[0]
@@ -219,11 +234,12 @@ class Text_Dataset(Dataset):
                 'user_isbn_vector' : torch.tensor(self.user_isbn_vector[i], dtype=torch.long),
                 'user_summary_merge_vector' : torch.tensor(self.user_summary_merge_vector[i].reshape(-1, 1), dtype=torch.float32),
                 'item_summary_vector' : torch.tensor(self.item_summary_vector[i].reshape(-1, 1), dtype=torch.float32),
+                'img_vector' : torch.tensor(self.img_vector[i], dtype=torch.float32),
                 'label' : torch.tensor(self.label[i], dtype=torch.float32),
                 }
 
 
-def text_data_load(args):
+def text_image_data_load(args):
     """
     Parameters
     ----------
@@ -234,6 +250,12 @@ def text_data_load(args):
             학습에 사용할 Device를 입력합니다.
         vector_create : bool
             사전에 텍스트 데이터 벡터화에 대한 여부를 입력합니다.
+        test_size : float
+            Train/Valid split 비율을 입력합니다.
+        seed : int
+            seed 값을 입력합니다.
+        batch_size : int
+            Batch size를 입력합니다.
     ----------
     """
     users = pd.read_csv(args.data_path + 'users.csv')
@@ -241,9 +263,9 @@ def text_data_load(args):
     train = pd.read_csv(args.data_path + 'train_ratings.csv')
     test = pd.read_csv(args.data_path + 'test_ratings.csv')
     sub = pd.read_csv(args.data_path + 'sample_submission.csv')
+
     ids = pd.concat([train['user_id'], sub['user_id']]).unique()
     isbns = pd.concat([train['isbn'], sub['isbn']]).unique()
-
 
     idx2user = {idx:id for idx, id in enumerate(ids)}
     idx2isbn = {idx:isbn for idx, isbn in enumerate(isbns)}
@@ -257,8 +279,8 @@ def text_data_load(args):
     train['isbn'] = train['isbn'].map(isbn2idx)
     sub['isbn'] = sub['isbn'].map(isbn2idx)
 
-    text_train = process_text_data(train, books, user2idx, isbn2idx, args.device, train=True, user_summary_merge_vector=args.vector_create, item_summary_vector=args.vector_create)
-    text_test = process_text_data(test, books, user2idx, isbn2idx, args.device, train=False, user_summary_merge_vector=args.vector_create, item_summary_vector=args.vector_create)
+    text_image_train = process_text_image_data(train, books, user2idx, isbn2idx, args.device, train=True, user_summary_merge_vector=args.vector_create, item_summary_vector=args.vector_create)
+    text_image_test = process_text_image_data(test, books, user2idx, isbn2idx, args.device, train=False, user_summary_merge_vector=args.vector_create, item_summary_vector=args.vector_create)
 
     data = {
             'train':train,
@@ -270,13 +292,14 @@ def text_data_load(args):
             'idx2isbn':idx2isbn,
             'user2idx':user2idx,
             'isbn2idx':isbn2idx,
-            'text_train':text_train,
-            'text_test':text_test,
+            'text_image_train':text_image_train,
+            'text_image_test':text_image_test,
+
             }
     return data
 
 
-def text_data_split(args, data):
+def text_image_data_split(args, data):
     """
     Parameters
     ----------
@@ -290,8 +313,8 @@ def text_data_split(args, data):
     ----------
     """
     X_train, X_valid, y_train, y_valid = train_test_split(
-                                                        data['text_train'][['user_id', 'isbn', 'user_summary_merge_vector', 'item_summary_vector']],
-                                                        data['text_train']['rating'],
+                                                        data['text_image_train'][['user_id', 'isbn', 'user_summary_merge_vector', 'item_summary_vector','img_vector']],
+                                                        data['text_image_train']['rating'],
                                                         test_size=args.test_size,
                                                         random_state=args.seed,
                                                         shuffle=True
@@ -300,7 +323,7 @@ def text_data_split(args, data):
     return data
 
 
-def text_data_loader(args, data):
+def text_image_data_loader(args, data):
     """
     Parameters
     ----------
@@ -311,23 +334,26 @@ def text_data_loader(args, data):
         text_data_split로 부터 학습/평가/실험 데이터가 담긴 사전 형식의 데이터를 입력합니다.
     ----------
     """
-    train_dataset = Text_Dataset(
+    train_dataset = Text_Image_Dataset(
                                 data['X_train'][['user_id', 'isbn']].values,
                                 data['X_train']['user_summary_merge_vector'].values,
                                 data['X_train']['item_summary_vector'].values,
+                                data['X_train']['img_vector'].values,
                                 data['y_train'].values
                                 )
-    valid_dataset = Text_Dataset(
+    valid_dataset = Text_Image_Dataset(
                                 data['X_valid'][['user_id', 'isbn']].values,
                                 data['X_valid']['user_summary_merge_vector'].values,
                                 data['X_valid']['item_summary_vector'].values,
+                                data['X_valid']['img_vector'].values,
                                 data['y_valid'].values
                                 )
-    test_dataset = Text_Dataset(
-                                data['text_test'][['user_id', 'isbn']].values,
-                                data['text_test']['user_summary_merge_vector'].values,
-                                data['text_test']['item_summary_vector'].values,
-                                data['text_test']['rating'].values
+    test_dataset = Text_Image_Dataset(
+                                data['text_image_test'][['user_id', 'isbn']].values,
+                                data['text_image_test']['user_summary_merge_vector'].values,
+                                data['text_image_test']['item_summary_vector'].values,
+                                data['text_image_test']['img_vector'].values,
+                                data['text_image_test']['rating'].values
                                 )
 
 
