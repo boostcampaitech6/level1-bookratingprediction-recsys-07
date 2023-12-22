@@ -102,5 +102,5 @@ def test(args, model, dataloader, setting):
         else:
             x = data[0].to(args.device)
         y_hat = model(x)
-        predicts.extend(torch.clamp(y_hat.tolist(), 1.0, 10.0))
+        predicts.extend(torch.clamp(y_hat, 1.0, 10.0).tolist())
     return predicts
