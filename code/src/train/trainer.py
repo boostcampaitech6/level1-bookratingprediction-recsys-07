@@ -3,7 +3,7 @@ import tqdm
 import torch
 import torch.nn as nn
 from torch.nn import MSELoss
-from torch.optim import SGD, Adam
+from torch.optim import SGD, Adam, AdamW
 
 
 class RMSELoss(nn.Module):
@@ -14,7 +14,6 @@ class RMSELoss(nn.Module):
         criterion = MSELoss()
         loss = torch.sqrt(criterion(x, y)+self.eps)
         return loss
-
 
 def train(args, model, dataloader, logger, setting):
     minimum_loss = 999999999
@@ -97,5 +96,9 @@ def test(args, model, dataloader, setting):
         else:
             x = data[0].to(args.device)
         y_hat = model(x)
-        predicts.extend(y_hat.tolist())
+        
+        # clamp 처리 하여, 결과 예측시 범위 밖 데이터 처리
+        predicts.extend(torch.clamp(y_hat,1,10).tolist())
+        # predicts.extend(y_hat.tolist())
+        
     return predicts
