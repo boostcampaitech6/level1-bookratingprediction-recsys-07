@@ -18,7 +18,7 @@ def dl_data_load(args):
     ######################## DATA LOAD
     users = pd.read_csv(args.data_path + 'users.csv')
     books = pd.read_csv(args.data_path + 'books.csv')
-    
+
     train = pd.read_csv(args.data_path + 'train_ratings.csv')
 
     ######################### DATA remove
